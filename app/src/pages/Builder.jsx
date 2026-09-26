@@ -184,12 +184,12 @@ export default function Builder(){
     };
   }
 
-  function orderPack(){
+  async function orderPack(){
     if (ordering) return;
     setOrdering(true);
 
     const packet = buildPacket();
-    const result = placeOrder(packet);
+    const result = await placeOrder(packet);
 
     if (!result.ok) {
       console.error('Order failed:', result.error);

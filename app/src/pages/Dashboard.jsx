@@ -26,7 +26,7 @@ export function DashLayout(){
 
 export function Overview(){
   const { user, orders } = useAuth();
-  const list = orders();
+  const list = orders;
   const shipped = list.filter(o => o.status === 'shipped').length;
   const open    = list.filter(o => o.status !== 'shipped').length;
   const units   = list.reduce((n, o) => n + o.quantity, 0);
@@ -112,6 +112,9 @@ export function Overview(){
           <div className="p-card-foot">
             <Link to="/dashboard/orders">See all orders →</Link>
           </div>
+          {list.length === 0 ? (
+            <p className="p-fine">No orders yet. Open the product builder to place the first one.</p>
+          ) : null}
         </section>
 
         <section className="p-card">
@@ -130,7 +133,7 @@ export function Overview(){
                 </div>
                 <div className="p-bar">
                   <i style={{
-                    width:`${Math.max(10, (m.units / units) * 100)}%`,
+                    width:`${units ? Math.max(10, (m.units / units) * 100) : 0}%`,
                     background:m.accent
                   }} />
                 </div>
@@ -190,7 +193,7 @@ function MiniStat({ label, value, delta, tone }){
 
 export function Orders(){
   const { orders } = useAuth();
-  const list = [...orders()].sort((a, b) => b.date.localeCompare(a.date));
+  const list = [...orders].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
     <div className="p-panel">
@@ -345,18 +348,17 @@ export function Settings(){
   const [name, setName]         = useState(user.name);
   const [company, setCompany]   = useState(user.company);
   const [email, setEmail]       = useState(user.email);
-  const [notify, setNotify]     = useState(() => {
-    try { return JSON.parse(localStorage.getItem('tara.notify') || 'true'); }
-    catch { return true; }
-  });
+  const [notify, setNotify]     = useState(user.notifyOrders ?? true);
   const [saved, setSaved]       = useState(false);
   const [error, setError]       = useState('');
+  const [busy, setBusy]         = useState(false);
 
-  function onSave(e){
+  async function onSave(e){
     e.preventDefault();
-    const result = updateProfile({ name, company, email });
+    setBusy(true);
+    const result = await updateProfile({ name, company, email, notifyOrders: notify });
+    setBusy(false);
     if (!result.ok) { setError(result.error); setSaved(false); return; }
-    localStorage.setItem('tara.notify', JSON.stringify(notify));
     setError('');
     setSaved(true);
   }
@@ -382,7 +384,7 @@ export function Settings(){
           <div className="p-card-head">
             <div>
               <h2>Account settings</h2>
-              <p>Stored in this browser only — no backend yet</p>
+              <p>Saved to your Supabase profile</p>
             </div>
           </div>
 
@@ -412,7 +414,9 @@ export function Settings(){
             {error ? <p className="auth-error" role="alert">{error}</p> : null}
             {saved ? <p className="auth-ok" role="status">Saved.</p> : null}
 
-            <button type="submit" className="p-btn">Save changes <Arrow /></button>
+            <button type="submit" className="p-btn" disabled={busy}>
+              {busy ? 'Saving…' : 'Save changes'} <Arrow />
+            </button>
           </form>
         </section>
       </div>

@@ -4,20 +4,24 @@ import Shell, { Arrow } from '../components/Shell.jsx';
 import { useAuth } from '../auth.jsx';
 
 export default function Login(){
-  const { login, isAuthed } = useAuth();
+  const { login, isAuthed, loading, supabaseConfigured } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || '/dashboard';
 
-  const [email, setEmail]       = useState('demo@tara.md');
-  const [password, setPassword] = useState('demo123');
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
+  const [busy, setBusy]         = useState(false);
 
-  if (isAuthed) return <Navigate to={from} replace />;
+  if (!loading && isAuthed) return <Navigate to={from} replace />;
 
-  function onSubmit(e){
+  async function onSubmit(e){
     e.preventDefault();
-    const result = login(email, password);
+    setBusy(true);
+    setError('');
+    const result = await login(email, password);
+    setBusy(false);
     if (!result.ok) { setError(result.error); return; }
     navigate(from, { replace:true });
   }
@@ -31,8 +35,15 @@ export default function Login(){
         </div>
         <p className="lede">
           B2B buyers configure packaging here and see every order that followed.
-          Use the demo account, or register a company of your own — both are mock data only.
+          Accounts are stored in Supabase Auth.
         </p>
+
+        {!supabaseConfigured ? (
+          <p className="auth-error" role="alert">
+            Supabase is not configured. Copy <code>.env.example</code> to <code>.env</code> and
+            add your project URL and anon key, then restart the dev server.
+          </p>
+        ) : null}
 
         <form className="auth-form" onSubmit={onSubmit}>
           <label className="auth-field">
@@ -49,15 +60,11 @@ export default function Login(){
           {error ? <p className="auth-error" role="alert">{error}</p> : null}
 
           <div className="cta-row">
-            <button type="submit" className="cta">
-              Sign in <Arrow />
+            <button type="submit" className="cta" disabled={busy || !supabaseConfigured}>
+              {busy ? 'Signing in…' : 'Sign in'} <Arrow />
             </button>
             <Link className="back" to="/register">Create an account</Link>
           </div>
-
-          <p className="fine">
-            Demo: <code>demo@tara.md</code> / <code>demo123</code>
-          </p>
         </form>
       </main>
     </Shell>

@@ -4,7 +4,7 @@ import Shell, { Arrow } from '../components/Shell.jsx';
 import { useAuth } from '../auth.jsx';
 
 export default function Register(){
-  const { register, isAuthed } = useAuth();
+  const { register, isAuthed, loading, supabaseConfigured } = useAuth();
   const navigate = useNavigate();
 
   const [name, setName]         = useState('');
@@ -12,12 +12,16 @@ export default function Register(){
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
+  const [busy, setBusy]         = useState(false);
 
-  if (isAuthed) return <Navigate to="/dashboard" replace />;
+  if (!loading && isAuthed) return <Navigate to="/dashboard" replace />;
 
-  function onSubmit(e){
+  async function onSubmit(e){
     e.preventDefault();
-    const result = register({ name, company, email, password });
+    setBusy(true);
+    setError('');
+    const result = await register({ name, company, email, password });
+    setBusy(false);
     if (!result.ok) { setError(result.error); return; }
     navigate('/dashboard', { replace:true });
   }
@@ -30,8 +34,14 @@ export default function Register(){
           <h1 style={{ marginTop:10 }}>Open a buyer account for your company.</h1>
         </div>
         <p className="lede">
-          Registration is mocked and stored in this browser only. Nothing is sent to a server.
+          Registration creates a real account in Supabase Auth and a company profile row.
         </p>
+
+        {!supabaseConfigured ? (
+          <p className="auth-error" role="alert">
+            Supabase is not configured. Add keys to <code>app/.env</code> first.
+          </p>
+        ) : null}
 
         <form className="auth-form" onSubmit={onSubmit}>
           <label className="auth-field">
@@ -58,8 +68,8 @@ export default function Register(){
           {error ? <p className="auth-error" role="alert">{error}</p> : null}
 
           <div className="cta-row">
-            <button type="submit" className="cta">
-              Create account <Arrow />
+            <button type="submit" className="cta" disabled={busy || !supabaseConfigured}>
+              {busy ? 'Creating…' : 'Create account'} <Arrow />
             </button>
             <Link className="back" to="/login">Already registered</Link>
           </div>

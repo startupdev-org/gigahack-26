@@ -5,21 +5,33 @@ real, but every number is a placeholder. No pricing, no EPR model, no spec engin
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+cp .env.example .env   # add your Supabase URL + anon key
+# Run supabase/schema.sql once in the Supabase SQL Editor
+npm run dev            # http://localhost:5173
 ```
+
+## Supabase
+
+1. Create a project at [supabase.com](https://supabase.com)
+2. **Project Settings → API** — copy Project URL and `anon` `public` key into `app/.env`
+3. **SQL Editor** — paste and run `supabase/schema.sql` (creates `profiles`, `orders`, RLS, signup trigger)
+4. **Authentication → Providers → Email** — for local demos, turn **off** “Confirm email”
+5. Restart `npm run dev`, then Register a real account
+
+Auth, profiles and orders all go through Supabase. Packaging content in `src/data.js` stays mock.
 
 ## Pages
 
 | Route | What it shows |
 |---|---|
 | `/` | Simple landing — sign in / register |
-| `/login` | Mock B2B sign-in (demo: `demo@tara.md` / `demo123`) |
-| `/register` | Mock company registration — stored in this browser only |
+| `/login` | Supabase email/password sign-in |
+| `/register` | Create buyer account + profile |
 | `/dashboard` | Buyer overview — main statistics (**auth required**) |
-| `/dashboard/orders` | Full order list |
+| `/dashboard/orders` | Orders from Supabase |
 | `/dashboard/info` | Packaging disclosure + context |
-| `/dashboard/settings` | Account preferences |
-| `/builder` | Product builder — material → form → finish → run → review (**auth required**) |
+| `/dashboard/settings` | Profile saved to Supabase |
+| `/builder` | Product builder — place order writes to Supabase |
 | `/take-back` | Consumer scan tool (linked from Information) |
 | `/learn` | Six counterintuitive sorting tips |
 | `/report` | Full company disclosure page |

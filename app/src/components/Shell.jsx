@@ -108,8 +108,8 @@ export function DashShell({ children }){
 
   const page = TITLES[location.pathname] || 'Dashboard';
 
-  function onLogout(){
-    logout();
+  async function onLogout(){
+    await logout();
     navigate('/');
   }
 
