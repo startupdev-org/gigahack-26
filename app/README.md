@@ -19,7 +19,7 @@ npm run dev      # http://localhost:5173
 | `/dashboard/orders` | Full order list |
 | `/dashboard/info` | Packaging disclosure + context |
 | `/dashboard/settings` | Account preferences |
-| `/configure` | Material → form → finish → run → review (**auth required**) |
+| `/builder` | Product builder — material → form → finish → run → review (**auth required**) |
 | `/take-back` | Consumer scan tool (linked from Information) |
 | `/learn` | Six counterintuitive sorting tips |
 | `/report` | Full company disclosure page |

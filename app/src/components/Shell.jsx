@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth.jsx';
+import { Settings } from 'lucide-react';
 
 export function Arrow(){
   return <span className="o"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" /></svg></span>;
@@ -67,9 +68,9 @@ export default function Shell({ tagline, meta, children }){
 const NAV = [
   { to:'/dashboard',          label:'Overview',     end:true, icon:'home' },
   { to:'/dashboard/orders',   label:'Orders',       icon:'box' },
-  { to:'/configure',          label:'Configure',    icon:'sliders' },
+  { to:'/builder',          label:'Product builder',    icon:'sliders' },
   { to:'/dashboard/info',     label:'Information',  icon:'info' },
-  { to:'/dashboard/settings', label:'Settings',     icon:'gear' }
+  { to:'/dashboard/settings', label:'Settings',     icon:'settings' }
 ];
 
 const TITLES = {
@@ -77,7 +78,7 @@ const TITLES = {
   '/dashboard/orders': 'Orders',
   '/dashboard/info': 'Information',
   '/dashboard/settings': 'Settings',
-  '/configure': 'Configure'
+  '/builder': 'Product builder'
 };
 
 function Icon({ name }){
@@ -91,8 +92,8 @@ function Icon({ name }){
       return <svg {...common}><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4" /></svg>;
     case 'info':
       return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></svg>;
-    case 'gear':
-      return <svg {...common}><circle cx="12" cy="12" r="3" /><path d="M12 3v2M12 19v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M3 12h2M19 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>;
+    case 'settings':
+      return <Settings />;
     default:
       return null;
   }
@@ -141,9 +142,9 @@ export function DashShell({ children }){
 
         <div className="purity-help">
           <b>Need a new pack?</b>
-          <p>Open the configurator to specify material, form and finish.</p>
-          <Link to="/configure" className="purity-help-btn" onClick={() => setOpen(false)}>
-            Configure
+          <p>Open the product builder to specify material, form and other details.</p>
+          <Link to="/builder" className="purity-help-btn" onClick={() => setOpen(false)}>
+            Build a new pack  
           </Link>
         </div>
       </aside>

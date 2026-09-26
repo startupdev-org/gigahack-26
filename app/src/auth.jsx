@@ -1,8 +1,9 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useMemo, useState, useCallback } from 'react';
 import { DEMO_USER, MOCK_ORDERS } from './data.js';
 
 const SESSION_KEY = 'tara.session';
 const USERS_KEY   = 'tara.users';
+const ORDERS_KEY  = 'tara.orders';
 
 const AuthContext = createContext(null);
 
@@ -30,6 +31,37 @@ function toSession(u){
 
 export function AuthProvider({ children }){
   const [user, setUser] = useState(() => readJson(SESSION_KEY, null));
+  const [extraOrders, setExtraOrders] = useState(() => readJson(ORDERS_KEY, []));
+
+  const placeOrder = useCallback((packet) => {
+    if (!user) return { ok:false, error:'Not signed in.' };
+
+    // Log the chosen pack before the order is committed.
+    console.log('Chosen packet:', packet);
+
+    const order = {
+      id:'ORD-' + String(2400 + extraOrders.length + MOCK_ORDERS.length + 1),
+      userId:user.id,
+      date:new Date().toISOString().slice(0, 10),
+      status:'pending',
+      material:packet.material,
+      form:packet.form,
+      finish:packet.finish,
+      run:packet.run,
+      quantity:packet.quantity ?? 1000,
+      title:packet.title || 'Custom pack',
+      subtitle:packet.subtitle || '',
+      dims:packet.dims,
+      weight:packet.weight,
+      coverage:packet.coverage,
+      volume:packet.volume
+    };
+
+    const next = [order, ...extraOrders];
+    writeJson(ORDERS_KEY, next);
+    setExtraOrders(next);
+    return { ok:true, order };
+  }, [user, extraOrders]);
 
   const value = useMemo(() => ({
     user,
@@ -91,7 +123,6 @@ export function AuthProvider({ children }){
       };
 
       if (user.id === DEMO_USER.id) {
-        // Demo account: session only — do not rewrite the shared demo password record.
         writeJson(SESSION_KEY, session);
         setUser(session);
         return { ok:true };
@@ -113,11 +144,15 @@ export function AuthProvider({ children }){
       setUser(null);
     },
 
+    placeOrder,
+
     orders(){
       if (!user) return [];
-      return MOCK_ORDERS.map(o => ({ ...o, userId:user.id }));
+      const mine = extraOrders.filter(o => o.userId === user.id);
+      const demo = MOCK_ORDERS.map(o => ({ ...o, userId:user.id }));
+      return [...mine, ...demo];
     }
-  }), [user]);
+  }), [user, extraOrders, placeOrder]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

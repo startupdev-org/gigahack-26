@@ -1,6 +1,6 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home.jsx';
-import Configure from './pages/Configure.jsx';
+import Builder from './pages/Builder.jsx';
 import TakeBack from './pages/TakeBack.jsx';
 import Learn from './pages/Learn.jsx';
 import Report from './pages/Report.jsx';
@@ -20,7 +20,9 @@ export default function App(){
       <Route path="/take-back" element={<TakeBack />} />
       <Route path="/learn"     element={<Learn />} />
       <Route path="/report"    element={<Report />} />
-      <Route path="/configure" element={<Protected><Configure /></Protected>} />
+      <Route path="/builder"   element={<Protected><Builder /></Protected>} />
+      <Route path="/build"     element={<Navigate to="/builder" replace />} />
+      <Route path="/configure" element={<Navigate to="/builder" replace />} />
       <Route path="/dashboard" element={<Protected><DashLayout /></Protected>}>
         <Route index element={<Overview />} />
         <Route path="orders"   element={<Orders />} />

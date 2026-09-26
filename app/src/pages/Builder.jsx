@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashShell, Arrow, BigWord } from '../components/Shell.jsx';
 import Product, { applyTones } from '../components/Product.jsx';
+import { useAuth } from '../auth.jsx';
 import { MATERIALS, FORMS, BLOCKS, FINISHES, RUNS, SIZES, GRAMMAGE, PRINT, AI_FINDINGS } from '../data.js';
 
 const STEPS = [
@@ -57,7 +59,9 @@ function coverageOf(finish, art){
   ));
 }
 
-export default function Configure(){
+export default function Builder(){
+  const { placeOrder } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep]         = useState(0);
   const [matIdx, setMatIdx]     = useState(0);
   const [form, setForm]         = useState(null);
@@ -67,6 +71,7 @@ export default function Configure(){
   const [art, setArt]           = useState(PRINT.defaults);
   const [guard, setGuard]       = useState(null);
   const [swapping, setSwapping] = useState(false);
+  const [ordering, setOrdering] = useState(false);
 
   const material = MATERIALS[matIdx];
   const finish   = FINISHES[finIdx];
@@ -156,6 +161,45 @@ export default function Configure(){
     live[(at + dir + live.length) % live.length].pick();
   };
 
+  function buildPacket(){
+    return {
+      material: material.id,
+      materialName: material.name,
+      form: shape,
+      formName: FORMS[shape].name,
+      finish: finish.id,
+      finishName: finish.name,
+      finishHex: finish.hex,
+      run,
+      runName: RUNS.find(r => r.id === run).name,
+      dims: { ...dims },
+      print: { ...art },
+      title: art.title.trim() || 'Custom pack',
+      subtitle: art.subtitle.trim() || FORMS[shape].name,
+      quantity: 1000,
+      weight,
+      coverage,
+      volume,
+      grade: material.grade
+    };
+  }
+
+  function orderPack(){
+    if (ordering) return;
+    setOrdering(true);
+
+    const packet = buildPacket();
+    const result = placeOrder(packet);
+
+    if (!result.ok) {
+      console.error('Order failed:', result.error);
+      setOrdering(false);
+      return;
+    }
+
+    navigate('/dashboard/orders');
+  }
+
   const hint = [
     FORMS[shape].desc,
     FORMS[shape].desc,
@@ -173,7 +217,7 @@ export default function Configure(){
     <>Colour is not decoration — <em>heavy ink coverage is what stops a sorting machine reading the polymer.</em></>,
     <>What you print is part of the specification. <em>The sorter reads the face before any shopper does.</em></>,
     <>{RUNS.find(r => r.id === run).desc}</>,
-    <>This is the specification that travels with the pack. <em>Its passport is what the consumer scans and what your report totals up.</em></>
+    <>This is the specification that travels with the pack. <em>Place the order to add it to your dashboard.</em></>
   ][step];
 
   const notice = guard
@@ -322,11 +366,18 @@ export default function Configure(){
           <p>{pitch}</p>
           <div className="cta-row">
             {step > 0 && <button className="back" onClick={() => swap(() => setStep(step - 1))}>Back</button>}
-            <button className="cta" disabled={step === 6}
-              onClick={() => swap(() => { if (!form) setForm(material.forms[0]); setStep(Math.min(step + 1, 6)); })}>
-              {['Choose a form','Set the size','Choose a finish','Add the print','Choose a run','Review the pack','Specified'][step]}
-              <Arrow />
-            </button>
+            {step < 6 ? (
+              <button className="cta"
+                onClick={() => swap(() => { if (!form) setForm(material.forms[0]); setStep(Math.min(step + 1, 6)); })}>
+                {['Choose a form','Set the size','Choose a finish','Add the print','Choose a run','Review the pack'][step]}
+                <Arrow />
+              </button>
+            ) : (
+              <button className="cta" disabled={ordering} onClick={orderPack}>
+                {ordering ? 'Placing order…' : 'Place order'}
+                <Arrow />
+              </button>
+            )}
           </div>
         </div>
       </footer>

@@ -66,7 +66,7 @@ export function Overview(){
               <h2>Orders overview</h2>
               <p>Welcome back, {user.name.split(' ')[0]}. Here is what is moving for {user.company}.</p>
             </div>
-            <Link className="p-btn" to="/configure">New pack <Arrow /></Link>
+            <Link className="p-btn" to="/builder">New pack <Arrow /></Link>
           </div>
 
           <div className="p-table-wrap">
@@ -167,7 +167,7 @@ export function Overview(){
               Material, form, finish and run — illegal combinations are refused
               before they reach audit.
             </p>
-            <Link className="p-btn" to="/configure">Open configurator <Arrow /></Link>
+            <Link className="p-btn" to="/builder">Open product builder <Arrow /></Link>
           </div>
         </section>
       </div>
@@ -200,7 +200,7 @@ export function Orders(){
             <h2>All orders</h2>
             <p>Every pack specified on this account</p>
           </div>
-          <Link className="p-btn" to="/configure">New specification <Arrow /></Link>
+            <Link className="p-btn" to="/builder">New specification <Arrow /></Link>
         </div>
 
         <div className="p-table-wrap">
