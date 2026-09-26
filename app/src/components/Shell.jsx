@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth.jsx';
-import { Settings } from 'lucide-react';
+import { Settings, PackagePlus } from 'lucide-react';
 
-export function Arrow(){
+export function Arrow() {
   return <span className="o"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" /></svg></span>;
 }
 
-export function BigWord({ text, swapping }){
+export function BigWord({ text, swapping }) {
   const size = Math.max(6.2, Math.min(15, 108 / Math.max(text.length, 1)));
   return (
     <div className={'bigword' + (swapping ? ' swap' : '')} aria-hidden="true">
@@ -17,7 +17,7 @@ export function BigWord({ text, swapping }){
 }
 
 /** Public / tool shell — home + auth (or back to dashboard when signed in). */
-export default function Shell({ tagline, meta, children }){
+export default function Shell({ tagline, meta, children }) {
   const { isAuthed } = useAuth();
 
   return (
@@ -66,11 +66,11 @@ export default function Shell({ tagline, meta, children }){
 }
 
 const NAV = [
-  { to:'/dashboard',          label:'Overview',     end:true, icon:'home' },
-  { to:'/dashboard/orders',   label:'Orders',       icon:'box' },
-  { to:'/builder',          label:'Product builder',    icon:'sliders' },
-  { to:'/dashboard/info',     label:'Information',  icon:'info' },
-  { to:'/dashboard/settings', label:'Settings',     icon:'settings' }
+  { to: '/dashboard', label: 'Overview', end: true, icon: 'home' },
+  { to: '/dashboard/orders', label: 'Orders', icon: 'box' },
+  { to: '/builder', label: 'Product builder', icon: 'package' },
+  { to: '/dashboard/info', label: 'Information', icon: 'info' },
+  { to: '/dashboard/settings', label: 'Settings', icon: 'settings' }
 ];
 
 const TITLES = {
@@ -81,15 +81,16 @@ const TITLES = {
   '/builder': 'Product builder'
 };
 
-function Icon({ name }){
-  const common = { viewBox:'0 0 24 24', fill:'none', stroke:'currentColor', strokeWidth:'1.8', strokeLinecap:'round', strokeLinejoin:'round' };
-  switch (name){
+function Icon({ name }) {
+  const common = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: '1.8', strokeLinecap: 'round', strokeLinejoin: 'round' };
+  switch (name) {
     case 'home':
       return <svg {...common}><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z" /></svg>;
     case 'box':
       return <svg {...common}><path d="M21 8.5 12 3 3 8.5v7L12 21l9-5.5z" /><path d="M3 8.5 12 14l9-5.5M12 14v7" /></svg>;
-    case 'sliders':
-      return <svg {...common}><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4" /></svg>;
+    case 'package':
+      return <PackagePlus />
+    // return <svg {...common}><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4" /></svg>;
     case 'info':
       return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></svg>;
     case 'settings':
@@ -100,7 +101,7 @@ function Icon({ name }){
 }
 
 /** Purity-style admin shell: sidebar + top bar + content. */
-export function DashShell({ children }){
+export function DashShell({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -108,7 +109,7 @@ export function DashShell({ children }){
 
   const page = TITLES[location.pathname] || 'Dashboard';
 
-  async function onLogout(){
+  async function onLogout() {
     await logout();
     navigate('/');
   }
@@ -144,7 +145,7 @@ export function DashShell({ children }){
           <b>Need a new pack?</b>
           <p>Open the product builder to specify material, form and other details.</p>
           <Link to="/builder" className="purity-help-btn" onClick={() => setOpen(false)}>
-            Build a new pack  
+            Build a new pack
           </Link>
         </div>
       </aside>

@@ -6,17 +6,17 @@ import {
   MATERIALS, FORMS, FINISHES, RUNS, ORDER_STATUSES, COMPANY, TIPS
 } from '../data.js';
 
-function lookup(list, id){
+function lookup(list, id) {
   return list.find(x => x.id === id);
 }
 
-function formatDate(iso){
+function formatDate(iso) {
   return new Date(iso + 'T12:00:00').toLocaleDateString('en-GB', {
-    day:'numeric', month:'short', year:'numeric'
+    day: 'numeric', month: 'short', year: 'numeric'
   });
 }
 
-export function DashLayout(){
+export function DashLayout() {
   return (
     <DashShell>
       <Outlet />
@@ -24,13 +24,13 @@ export function DashLayout(){
   );
 }
 
-export function Overview(){
+export function Overview() {
   const { user, orders } = useAuth();
   const list = orders;
   const shipped = list.filter(o => o.status === 'shipped').length;
-  const open    = list.filter(o => o.status !== 'shipped').length;
-  const units   = list.reduce((n, o) => n + o.quantity, 0);
-  const recent  = [...list].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
+  const open = list.filter(o => o.status !== 'shipped').length;
+  const units = list.reduce((n, o) => n + o.quantity, 0);
+  const recent = [...list].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
 
   const byMaterial = MATERIALS.map(m => ({
     name: m.short,
@@ -128,13 +128,13 @@ export function Overview(){
             {byMaterial.map(m => (
               <li key={m.name}>
                 <div className="p-mat-row">
-                  <span><i style={{ background:m.accent }} />{m.name}</span>
+                  <span><i style={{ background: m.accent }} />{m.name}</span>
                   <b className="num">{m.units.toLocaleString('en-GB')}</b>
                 </div>
                 <div className="p-bar">
                   <i style={{
-                    width:`${units ? Math.max(10, (m.units / units) * 100) : 0}%`,
-                    background:m.accent
+                    width: `${units ? Math.max(10, (m.units / units) * 100) : 0}%`,
+                    background: m.accent
                   }} />
                 </div>
               </li>
@@ -178,7 +178,7 @@ export function Overview(){
   );
 }
 
-function MiniStat({ label, value, delta, tone }){
+function MiniStat({ label, value, delta, tone }) {
   return (
     <div className="p-mini">
       <div>
@@ -191,7 +191,7 @@ function MiniStat({ label, value, delta, tone }){
   );
 }
 
-export function Orders(){
+export function Orders() {
   const { orders } = useAuth();
   const list = [...orders].sort((a, b) => b.date.localeCompare(a.date));
 
@@ -203,7 +203,7 @@ export function Orders(){
             <h2>All orders</h2>
             <p>Every pack specified on this account</p>
           </div>
-            <Link className="p-btn" to="/builder">New specification <Arrow /></Link>
+          <Link className="p-btn" to="/builder">New product <Arrow /></Link>
         </div>
 
         <div className="p-table-wrap">
@@ -224,10 +224,10 @@ export function Orders(){
             <tbody>
               {list.map(order => {
                 const material = lookup(MATERIALS, order.material);
-                const form     = FORMS[order.form];
-                const finish   = lookup(FINISHES, order.finish);
-                const run      = lookup(RUNS, order.run);
-                const status   = ORDER_STATUSES[order.status];
+                const form = FORMS[order.form];
+                const finish = lookup(FINISHES, order.finish);
+                const run = lookup(RUNS, order.run);
+                const status = ORDER_STATUSES[order.status];
                 return (
                   <tr key={order.id}>
                     <td>
@@ -246,7 +246,7 @@ export function Orders(){
                     <td>{form?.name}</td>
                     <td>
                       <span className="p-finish">
-                        <i style={{ background:finish?.hex }} />
+                        <i style={{ background: finish?.hex }} />
                         {finish?.name}
                       </span>
                     </td>
@@ -264,13 +264,13 @@ export function Orders(){
             </tbody>
           </table>
         </div>
-        <p className="p-fine">Mock orders only. Live fulfilment is not connected yet.</p>
+        {/* <p className="p-fine">Mock orders only. Live fulfilment is not connected yet.</p> */}
       </section>
     </div>
   );
 }
 
-export function Info(){
+export function Info() {
   return (
     <div className="p-panel">
       <div className="p-row">
@@ -290,7 +290,7 @@ export function Info(){
                   <span>{s.achieved} t · target {s.target}%</span>
                 </div>
                 <div className="p-bar">
-                  <i style={{ width:`${pct}%` }} />
+                  <i style={{ width: `${pct}%` }} />
                 </div>
                 <div className="p-stream-foot">Declared {s.declared} t placed on market</div>
               </div>
@@ -343,17 +343,17 @@ export function Info(){
   );
 }
 
-export function Settings(){
+export function Settings() {
   const { user, updateProfile } = useAuth();
-  const [name, setName]         = useState(user.name);
-  const [company, setCompany]   = useState(user.company);
-  const [email, setEmail]       = useState(user.email);
-  const [notify, setNotify]     = useState(user.notifyOrders ?? true);
-  const [saved, setSaved]       = useState(false);
-  const [error, setError]       = useState('');
-  const [busy, setBusy]         = useState(false);
+  const [name, setName] = useState(user.name);
+  const [company, setCompany] = useState(user.company);
+  const [email, setEmail] = useState(user.email);
+  const [notify, setNotify] = useState(user.notifyOrders ?? true);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  async function onSave(e){
+  async function onSave(e) {
     e.preventDefault();
     setBusy(true);
     const result = await updateProfile({ name, company, email, notifyOrders: notify });

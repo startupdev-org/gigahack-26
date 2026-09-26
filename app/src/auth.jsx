@@ -5,7 +5,7 @@ import { supabase, supabaseConfigured } from './lib/supabase.js';
 
 const AuthContext = createContext(null);
 
-function mapProfile(sessionUser, profile){
+function mapProfile(sessionUser, profile) {
   return {
     id: sessionUser.id,
     email: profile?.email || sessionUser.email || '',
@@ -15,7 +15,7 @@ function mapProfile(sessionUser, profile){
   };
 }
 
-function mapOrder(row){
+function mapOrder(row) {
   return {
     id: row.order_code,
     dbId: row.id,
@@ -29,24 +29,24 @@ function mapOrder(row){
     quantity: row.quantity,
     title: row.title,
     subtitle: row.subtitle,
-    dims: row.dims || { L:0, W:0, H:0 },
+    dims: row.dims || { L: 0, W: 0, H: 0 },
     weight: row.weight,
     coverage: row.coverage,
     volume: row.volume
   };
 }
 
-function authError(err){
+function authError(err) {
   const msg = err?.message || 'Something went wrong.';
   if (/invalid login/i.test(msg)) return 'Email or password is wrong.';
   if (/already registered/i.test(msg)) return 'That email is already registered.';
   if (/email not confirmed/i.test(msg)) {
-    return 'Confirm your email first (check inbox), or disable email confirmations in Supabase Auth settings.';
+    return 'Confirm your email before signing in. Check your inbox for the confirmation link.';
   }
   return msg;
 }
 
-export function AuthProvider({ children }){
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -77,7 +77,7 @@ export function AuthProvider({ children }){
       .from('orders')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at', { ascending:false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Orders load:', error);
@@ -97,29 +97,21 @@ export function AuthProvider({ children }){
 
     let alive = true;
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!alive) return;
-      const sessionUser = data.session?.user ?? null;
-      if (sessionUser) {
-        await loadProfile(sessionUser);
-        await refreshOrders(sessionUser.id);
-      } else {
-        setUser(null);
-        setOrders([]);
-      }
-      setLoading(false);
-    });
-
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const sessionUser = session?.user ?? null;
-      if (sessionUser) {
-        await loadProfile(sessionUser);
-        await refreshOrders(sessionUser.id);
-      } else {
-        setUser(null);
-        setOrders([]);
-      }
-      setLoading(false);
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Supabase sends INITIAL_SESSION on subscription. Defer database calls outside
+      // this synchronous callback so auth operations cannot deadlock.
+      setTimeout(async () => {
+        if (!alive) return;
+        const sessionUser = session?.user ?? null;
+        if (sessionUser) {
+          await loadProfile(sessionUser);
+          await refreshOrders(sessionUser.id);
+        } else {
+          setUser(null);
+          setOrders([]);
+        }
+        if (alive) setLoading(false);
+      }, 0);
     });
 
     return () => {
@@ -130,65 +122,88 @@ export function AuthProvider({ children }){
 
   const login = useCallback(async (email, password) => {
     if (!supabase) {
-      return { ok:false, error:'Supabase is not configured. Add keys to app/.env' };
+      return { ok: false, error: 'Supabase is not configured. Add keys to app/.env' };
     }
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password
-    });
-    if (error) return { ok:false, error:authError(error) };
-    await loadProfile(data.user);
-    await refreshOrders(data.user.id);
-    return { ok:true };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password
+      });
+      if (error) return { ok: false, error: authError(error) };
+      if (!data.user || !data.session) {
+        return { ok: false, error: 'Sign in did not complete. Please try again.' };
+      }
+      await loadProfile(data.user);
+      await refreshOrders(data.user.id);
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: authError(error) };
+    }
   }, [loadProfile, refreshOrders]);
 
   const register = useCallback(async ({ name, company, email, password }) => {
     if (!supabase) {
-      return { ok:false, error:'Supabase is not configured. Add keys to app/.env' };
+      return { ok: false, error: 'Supabase is not configured. Add keys to app/.env' };
     }
     const clean = email.trim().toLowerCase();
     if (!name.trim() || !company.trim() || !clean || !password) {
-      return { ok:false, error:'Fill in every field.' };
+      return { ok: false, error: 'Fill in every field.' };
     }
     if (password.length < 6) {
-      return { ok:false, error:'Password needs at least 6 characters.' };
+      return { ok: false, error: 'Password needs at least 6 characters.' };
     }
 
-    const { data, error } = await supabase.auth.signUp({
-      email: clean,
-      password,
-      options: {
-        data: { name: name.trim(), company: company.trim() }
+    try {
+      // Avoid creating an Auth user when the buyer profile schema is missing.
+      const { error: schemaError } = await supabase.from('profiles').select('id').limit(0);
+      if (schemaError) {
+        console.error('Profile schema check:', schemaError);
+        return {
+          ok: false,
+          error: schemaError.code === 'PGRST205'
+            ? 'Registration is temporarily unavailable. Try again later!'
+            : authError(schemaError)
+        };
       }
-    });
-    if (error) return { ok:false, error:authError(error) };
 
-    // If email confirmation is required, session may be null.
-    if (!data.session) {
-      return {
-        ok:false,
-        error:'Account created. Confirm your email, then sign in. (Or turn off email confirmation in Supabase → Authentication → Providers → Email.)'
-      };
+      const { data, error } = await supabase.auth.signUp({
+        email: clean,
+        password,
+        options: {
+          data: { name: name.trim(), company: company.trim() }
+        }
+      });
+      if (error) return { ok: false, error: authError(error) };
+      if (!data.user) {
+        return { ok: false, error: 'Registration did not complete. Please try again.' };
+      }
+
+      // With email confirmation enabled, Supabase creates no session yet.
+      if (!data.session) return { ok: true, requiresEmailConfirmation: true };
+
+      // The database trigger creates the profile; this also repairs an older
+      // project where the trigger was installed after the account was created.
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        id: data.user.id,
+        name: name.trim(),
+        company: company.trim(),
+        email: clean
+      });
+      if (profileError) console.error('Profile save:', profileError);
+
+      await loadProfile(data.user);
+      await refreshOrders(data.user.id);
+      return { ok: true, requiresEmailConfirmation: false };
+    } catch (error) {
+      return { ok: false, error: authError(error) };
     }
-
-    // Ensure profile row exists even if trigger is slow
-    await supabase.from('profiles').upsert({
-      id: data.user.id,
-      name: name.trim(),
-      company: company.trim(),
-      email: clean
-    });
-
-    await loadProfile(data.user);
-    await refreshOrders(data.user.id);
-    return { ok:true };
   }, [loadProfile, refreshOrders]);
 
   const updateProfile = useCallback(async ({ name, company, email, notifyOrders }) => {
-    if (!supabase || !user) return { ok:false, error:'Not signed in.' };
+    if (!supabase || !user) return { ok: false, error: 'Not signed in.' };
     const clean = email.trim().toLowerCase();
     if (!name.trim() || !company.trim() || !clean) {
-      return { ok:false, error:'Fill in every field.' };
+      return { ok: false, error: 'Fill in every field.' };
     }
 
     const { error } = await supabase
@@ -202,11 +217,11 @@ export function AuthProvider({ children }){
       })
       .eq('id', user.id);
 
-    if (error) return { ok:false, error:authError(error) };
+    if (error) return { ok: false, error: authError(error) };
 
     if (clean !== user.email) {
       const { error: emailErr } = await supabase.auth.updateUser({ email: clean });
-      if (emailErr) return { ok:false, error:authError(emailErr) };
+      if (emailErr) return { ok: false, error: authError(emailErr) };
     }
 
     setUser(u => ({
@@ -216,7 +231,7 @@ export function AuthProvider({ children }){
       email: clean,
       notifyOrders: notifyOrders ?? u.notifyOrders
     }));
-    return { ok:true };
+    return { ok: true };
   }, [user]);
 
   const logout = useCallback(async () => {
@@ -226,7 +241,7 @@ export function AuthProvider({ children }){
   }, []);
 
   const placeOrder = useCallback(async (packet) => {
-    if (!supabase || !user) return { ok:false, error:'Not signed in.' };
+    if (!supabase || !user) return { ok: false, error: 'Not signed in.' };
 
     console.log('Chosen packet:', packet);
 
@@ -258,12 +273,12 @@ export function AuthProvider({ children }){
 
     if (error) {
       console.error('Order failed:', error);
-      return { ok:false, error:authError(error) };
+      return { ok: false, error: authError(error) };
     }
 
     const mapped = mapOrder(data);
     setOrders(prev => [mapped, ...prev]);
-    return { ok:true, order: mapped };
+    return { ok: true, order: mapped };
   }, [user]);
 
   const value = useMemo(() => ({
@@ -286,7 +301,7 @@ export function AuthProvider({ children }){
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth(){
+export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
   return ctx;

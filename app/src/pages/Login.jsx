@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import Shell, { Arrow } from '../components/Shell.jsx';
+import { ArrowRight } from 'lucide-react';
 import { useAuth } from '../auth.jsx';
 
 export default function Login(){
@@ -27,46 +27,48 @@ export default function Login(){
   }
 
   return (
-    <Shell tagline="Sign in">
-      <main className="page auth-page">
-        <div>
-          <div className="eyebrow">Account</div>
-          <h1 style={{ marginTop:10 }}>Sign in to specify packs and track orders.</h1>
+    <main className="login-screen">
+      <section className="login-card" aria-labelledby="login-title">
+        <Link to="/" className="purity-logo login-brand" aria-label="TARA home">
+          <span className="purity-logo-mark">T</span>
+          <span>TARA</span>
+        </Link>
+
+        <div className="login-intro">
+          <span className="login-kicker">Buyer workspace</span>
+          <h1 id="login-title">Welcome back</h1>
+          <p>Sign in to manage your packaging and keep every order in view.</p>
         </div>
-        <p className="lede">
-          B2B buyers configure packaging here and see every order that followed.
-          Accounts are stored in Supabase Auth.
-        </p>
 
         {!supabaseConfigured ? (
-          <p className="auth-error" role="alert">
-            Supabase is not configured. Copy <code>.env.example</code> to <code>.env</code> and
+          <p className="login-error" role="alert">
+            Supabase is not configured. Copy <code>.env.example</code> to <code>.env</code>,
             add your project URL and anon key, then restart the dev server.
           </p>
         ) : null}
 
-        <form className="auth-form" onSubmit={onSubmit}>
-          <label className="auth-field">
-            <span className="label">Email</span>
-            <input type="email" autoComplete="email" value={email}
+        <form className="login-form" onSubmit={onSubmit}>
+          <label className="login-field">
+            <span>Email address</span>
+            <input type="email" autoComplete="email" placeholder="you@company.com" value={email}
               onChange={e => setEmail(e.target.value)} required />
           </label>
-          <label className="auth-field">
-            <span className="label">Password</span>
-            <input type="password" autoComplete="current-password" value={password}
+          <label className="login-field">
+            <span>Password</span>
+            <input type="password" autoComplete="current-password" placeholder="Enter your password" value={password}
               onChange={e => setPassword(e.target.value)} required />
           </label>
 
-          {error ? <p className="auth-error" role="alert">{error}</p> : null}
+          {error ? <p className="login-error" role="alert">{error}</p> : null}
 
-          <div className="cta-row">
-            <button type="submit" className="cta" disabled={busy || !supabaseConfigured}>
-              {busy ? 'Signing in…' : 'Sign in'} <Arrow />
-            </button>
-            <Link className="back" to="/register">Create an account</Link>
-          </div>
+          <button type="submit" className="login-submit" disabled={busy || !supabaseConfigured}>
+            <span>{busy ? 'Signing in…' : 'Sign in'}</span>
+            <ArrowRight size={18} aria-hidden="true" />
+          </button>
         </form>
-      </main>
-    </Shell>
+
+        <p className="login-register">New to TARA? <Link to="/register">Create an account</Link></p>
+      </section>
+    </main>
   );
 }

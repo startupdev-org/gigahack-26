@@ -15,8 +15,13 @@ npm run dev            # http://localhost:5173
 1. Create a project at [supabase.com](https://supabase.com)
 2. **Project Settings → API** — copy Project URL and `anon` `public` key into `app/.env`
 3. **SQL Editor** — paste and run `supabase/schema.sql` (creates `profiles`, `orders`, RLS, signup trigger)
-4. **Authentication → Providers → Email** — for local demos, turn **off** “Confirm email”
-5. Restart `npm run dev`, then Register a real account
+4. **Authentication → Providers → Email** — keep email sign-in and sign-up enabled. With “Confirm email” on, registration shows a check-your-inbox screen; with it off, registration signs the user in immediately.
+5. If confirmation is on, set **Authentication → URL Configuration → Site URL** to the app URL so confirmation links return to the app.
+6. Restart `npm run dev`, then register an account
+
+If `orders` already exists but `profiles` is missing, run only
+`supabase/ensure_profiles.sql` in the SQL Editor. It creates the profile table,
+signup trigger, and missing profile rows for existing accounts.
 
 Auth, profiles and orders all go through Supabase. Packaging content in `src/data.js` stays mock.
 
