@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import Shell, { Arrow, BigWord } from '../components/Shell.jsx';
+import { DashShell, Arrow, BigWord } from '../components/Shell.jsx';
 import Product, { applyTones } from '../components/Product.jsx';
 import { MATERIALS, FORMS, BLOCKS, FINISHES, RUNS, SIZES, GRAMMAGE, PRINT, AI_FINDINGS } from '../data.js';
 
@@ -187,8 +187,8 @@ export default function Configure(){
       : null;
 
   return (
-    <Shell tagline="Packaging, specified"
-           meta={{ k:'Est. pack weight', v:weight, u:'g' }}>
+    <DashShell>
+      <div className="configure-wrap">
       <div className="steps" role="tablist" aria-label="Configuration steps">
         {STEPS.map((s, i) => (
           <button key={s.n} role="tab" aria-selected={i === step}
@@ -330,7 +330,8 @@ export default function Configure(){
           </div>
         </div>
       </footer>
-    </Shell>
+      </div>
+    </DashShell>
   );
 }
 

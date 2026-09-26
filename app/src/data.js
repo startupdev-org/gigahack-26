@@ -258,3 +258,53 @@ export const AI_FINDINGS = [
     body:'Wall thickness is uniform where it only needs reinforcement at the rim. Standard tooling can take it down without a stiffness penalty.',
     effect:'Material −14%' }
 ];
+
+/* ── Auth + orders (mock) ───────────────────────────────────────────────
+   No backend. Demo account below; register writes into localStorage.
+   Orders are illustrative B2B packs a buyer would have specified here. */
+export const DEMO_USER = {
+  id:'u1',
+  email:'demo@tara.md',
+  password:'demo123',
+  name:'Ana Popescu',
+  company:'Rodnic Foods SRL'
+};
+
+export const ORDER_STATUSES = {
+  pending:       { label:'Pending',        tone:'#A2701C' },
+  in_production: { label:'In production',  tone:'#2F6C8F' },
+  shipped:       { label:'Shipped',        tone:'#3F7A4F' }
+};
+
+export const MOCK_ORDERS = [
+  {
+    id:'ORD-2418', userId:'u1', date:'2026-09-18', status:'shipped',
+    material:'rpet', form:'tray', finish:'ocean', run:'pooled',
+    quantity:12000, title:'RODNIC', subtitle:'Tomatoes in their own juice',
+    dims:{ L:190, W:140, H:45 }
+  },
+  {
+    id:'ORD-2412', userId:'u1', date:'2026-09-04', status:'in_production',
+    material:'pp', form:'pot', finish:'bone', run:'dedicated',
+    quantity:8000, title:'RODNIC', subtitle:'Natural yoghurt 400 g',
+    dims:{ L:95, W:95, H:110 }
+  },
+  {
+    id:'ORD-2407', userId:'u1', date:'2026-08-21', status:'shipped',
+    material:'kraft', form:'shipper', finish:'natural', run:'pooled',
+    quantity:2400, title:'RODNIC', subtitle:'Pallet transit case',
+    dims:{ L:400, W:300, H:250 }
+  },
+  {
+    id:'ORD-2401', userId:'u1', date:'2026-08-02', status:'shipped',
+    material:'fibre', form:'hotbox', finish:'sage', run:'express',
+    quantity:5000, title:'RODNIC', subtitle:'Counter hot hold',
+    dims:{ L:230, W:170, H:75 }
+  },
+  {
+    id:'ORD-2394', userId:'u1', date:'2026-07-15', status:'pending',
+    material:'pe', form:'pouch', finish:'clay', run:'pooled',
+    quantity:15000, title:'RODNIC', subtitle:'Dried fruit snacks',
+    dims:{ L:70, W:160, H:230 }
+  }
+];

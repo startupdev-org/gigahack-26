@@ -12,11 +12,17 @@ npm run dev      # http://localhost:5173
 
 | Route | What it shows |
 |---|---|
-| `/` | The idea in one screen — one pack's passport, seen from four sides |
-| `/configure` | Material → form → finish → run → review. Illegal combinations are refused with a reason |
-| `/take-back` | Scan an item, get a verdict, fill the cup. Deposit items are deliberately sent away |
-| `/learn` | Six counterintuitive things, instead of a tutorials tab nobody opens |
-| `/report` | A company's verified disclosure — explicitly not a certificate |
+| `/` | Simple landing — sign in / register |
+| `/login` | Mock B2B sign-in (demo: `demo@tara.md` / `demo123`) |
+| `/register` | Mock company registration — stored in this browser only |
+| `/dashboard` | Buyer overview — main statistics (**auth required**) |
+| `/dashboard/orders` | Full order list |
+| `/dashboard/info` | Packaging disclosure + context |
+| `/dashboard/settings` | Account preferences |
+| `/configure` | Material → form → finish → run → review (**auth required**) |
+| `/take-back` | Consumer scan tool (linked from Information) |
+| `/learn` | Six counterintuitive sorting tips |
+| `/report` | Full company disclosure page |
 
 ## Where the content comes from
 
